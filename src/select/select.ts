@@ -109,6 +109,7 @@ let styles = `
 @Component({
   selector: 'ng-select',
   styles: [styles],
+  host: {'(document:click)':'checkOutsideClicked($event)'},
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,
@@ -126,7 +127,7 @@ let styles = `
      class="ui-select-container dropdown open">
     <div [ngClass]="{'ui-disabled': disabled}"></div>
     <div class="ui-select-match"
-         *ngIf="!inputMode">
+         [hidden]="inputMode">
       <span tabindex="-1"
           class="btn btn-default btn-secondary form-control ui-select-toggle"
           (click)="matchClick($event)"
@@ -340,7 +341,6 @@ export class SelectComponent implements OnInit, ControlValueAccessor {
 
   public constructor(element:ElementRef, private sanitizer:DomSanitizer) {
     this.element = element;
-    this.clickedOutside = this.clickedOutside.bind(this);
   }
 
   public sanitize(html:string):SafeHtml {
@@ -457,12 +457,7 @@ export class SelectComponent implements OnInit, ControlValueAccessor {
       this.onChange(this.active);
     }
   }
-
-  public clickedOutside():void {
-    this.inputMode = false;
-    this.optionsOpened = false;
-  }
-
+ 
   public get firstItemHasChildren():boolean {
     return this.itemObjects[0] && this.itemObjects[0].hasChildren();
   }
@@ -548,6 +543,12 @@ export class SelectComponent implements OnInit, ControlValueAccessor {
       this.behavior.first();
     }
     this.optionsOpened = true;
+  }
+
+  private checkOutsideClicked(event) {
+    if(event.target !== this.element.nativeElement && !this.element.nativeElement.contains(event.target) && this.optionsOpened) {
+      this.hideOptions();
+    }
   }
 
   private hideOptions():void {
